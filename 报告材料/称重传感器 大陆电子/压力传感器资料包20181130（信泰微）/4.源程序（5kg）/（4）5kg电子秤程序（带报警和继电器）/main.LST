@@ -1,0 +1,291 @@
+C51 COMPILER V9.52.0.0   MAIN                                                              06/04/2018 10:19:03 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /**********************************************************************
+   2          
+   3          ***********************************************************************/
+   4          
+   5          #include "main.h"
+   6          #include "HX711.h"
+   7          #include "uart.h"
+   8          #include "LCD1602.h"
+   9          
+  10          #define   uchar unsigned char
+  11          #define   uint unsigned int
+  12          unsigned long HX711_Buffer = 0;
+  13          unsigned long Weight_Maopi = 0;
+  14          long Weight_Shiwu = 0;
+  15          long Weight_warn = 0;
+  16          
+  17          unsigned char flag = 0;
+  18          bit Flag_ERROR = 0;
+  19          sbit speak= P1^7;  //·äÃùÆ÷
+  20          sbit jiare= P3^0; //¼ÌµçÆ÷½Ó¿Ú
+  21          uchar Ncunchu[5];
+  22          unsigned char num1,num2; 
+  23          //Ð£×¼²ÎÊý
+  24          //ÒòÎª²»Í¬µÄ´«¸ÐÆ÷ÌØÐÔÇúÏß²»ÊÇºÜÒ»ÖÂ£¬Òò´Ë£¬Ã¿Ò»¸ö´«¸ÐÆ÷ÐèÒª½ÃÕýÕâÀïÕâ¸ö²ÎÊý²ÅÄÜÊ¹²âÁ¿ÖµºÜ×¼È·¡£
+  25          //µ±·¢ÏÖ²âÊÔ³öÀ´µÄÖØÁ¿Æ«´óÊ±£¬Ôö¼Ó¸ÃÊýÖµ¡£
+  26          //Èç¹û²âÊÔ³öÀ´µÄÖØÁ¿Æ«Ð¡Ê±£¬¼õÐ¡¸ÄÊýÖµ¡£ ²»¹ý¸ÃÖµÒ²¿ÉÒÔÍ¨¹ý°´¼ü¿ªÐÞ¸Ä£¬¸Ã³ÌÐòÖÐÓÐÌåÏÖ³öÀ´µÄ¡¡£
+  27          //¸ÃÖµ¿ÉÒÔÎªÐ¡Êý
+  28          
+  29          uint GapValue= 430;
+  30          
+  31          #include "eeprom52.h"
+  32          
+  33          
+  34          /******************°ÑÊý¾Ý±£´æµ½µ¥Æ¬»úÄÚ²¿eepromÖÐ******************/
+  35          void write_eeprom()
+  36          {  
+  37   1      
+  38   1        
+  39   1        Ncunchu[0] = Weight_warn/256;
+  40   1        Ncunchu[1] = Weight_warn%256;
+  41   1        
+  42   1         num1=GapValue/256;
+  43   1        num2=GapValue%256;
+  44   1        
+  45   1        SectorErase(0x2000);
+  46   1        byte_write(0x2011,Ncunchu[0]);
+  47   1        byte_write(0x2012,Ncunchu[1]);
+  48   1        
+  49   1        byte_write(0x2001,  num1);
+  50   1        byte_write(0x2002,  num2);
+  51   1      
+  52   1      
+  53   1      
+  54   1        byte_write(0x2060, a_a);  
+  55   1      }
+C51 COMPILER V9.52.0.0   MAIN                                                              06/04/2018 10:19:03 PAGE 2   
+
+  56          
+  57          /******************°ÑÊý¾Ý´Óµ¥Æ¬»úÄÚ²¿eepromÖÐ¶Á³öÀ´*****************/
+  58          void read_eeprom()
+  59          {
+  60   1        num1   = byte_read(0x2001);
+  61   1        num2   = byte_read(0x2002);
+  62   1      
+  63   1        
+  64   1        Ncunchu[0] = byte_read(0x2011);
+  65   1        Ncunchu[1] = byte_read(0x2012);
+  66   1        
+  67   1        Weight_warn  = Ncunchu[0]*256+Ncunchu[1];
+  68   1        GapValue= num1*256+num2;
+  69   1      
+  70   1      
+  71   1        
+  72   1          a_a      = byte_read(0x2060);
+  73   1      }
+  74          
+  75          /**************¿ª»ú×Ô¼ìeeprom³õÊ¼»¯*****************/
+  76          void init_eeprom()
+  77          {
+  78   1        read_eeprom();    //ÏÈ¶Á
+  79   1        if(a_a != 156)    //ÐÂµÄµ¥Æ¬»ú³õÊ¼µ¥Æ¬»úÄÚÎÊeeprom
+  80   1        {
+  81   2           a_a =156;
+  82   2           Weight_warn = 100;
+  83   2           GapValue= 430;
+  84   2           write_eeprom();
+  85   2        } 
+  86   1        
+  87   1        
+  88   1        
+  89   1      }
+  90          
+  91          //****************************************************
+  92          //Ö÷º¯Êý
+  93          //****************************************************
+  94          void main()
+  95          {
+  96   1         // Uart_Init();
+  97   1         // Send_Word("Welcome to use!\n");
+  98   1         // Send_Word("Made by Beetle Electronic Technology!\n");
+  99   1        
+ 100   1        Init_LCD1602();
+ 101   1        LCD1602_write_com(0x80);
+ 102   1        LCD1602_write_word("Weight  Warning");
+ 103   1        init_eeprom();            //¶ÁeepromÊý¾Ý
+ 104   1       
+ 105   1        Delay_ms(1000);    //ÑÓÊ±,µÈ´ý´«¸ÐÆ÷ÎÈ¶¨
+ 106   1        Get_Maopi();        //³ÆÃ«Æ¤ÖØÁ¿
+ 107   1          Delay_ms(100);     
+ 108   1        Get_Maopi();        //³ÆÃ«Æ¤ÖØÁ¿
+ 109   1        Delay_ms(100);     
+ 110   1        Get_Maopi();        //¶à´ÎÈ¥Æ¤ÓÐÀûÓÚÎÈ¶¨
+ 111   1        
+ 112   1        while(1)
+ 113   1        {
+ 114   2          EA = 0;
+ 115   2          Get_Weight();     //³ÆÖØ
+ 116   2          EA = 1;
+ 117   2      
+C51 COMPILER V9.52.0.0   MAIN                                                              06/04/2018 10:19:03 PAGE 3   
+
+ 118   2          Scan_Key();
+ 119   2      
+ 120   2          //ÏÔÊ¾µ±Ç°ÖØÁ¿
+ 121   2          if( Flag_ERROR == 1)
+ 122   2          {
+ 123   3               //   Send_Word("ERROR\n");
+ 124   3            
+ 125   3            LCD1602_write_com(0x80+0x40);
+ 126   3            LCD1602_write_word("ERROR ");
+ 127   3            speak=0;
+ 128   3          }   
+ 129   2          else
+ 130   2          {         
+ 131   3          
+ 132   3                  LCD1602_write_com(0x80+0x40);
+ 133   3            LCD1602_write_data(Weight_Shiwu/1000 + 0X30);
+ 134   3                  LCD1602_write_data(Weight_Shiwu%1000/100 + 0X30);
+ 135   3                  LCD1602_write_data(Weight_Shiwu%100/10 + 0X30);
+ 136   3                  LCD1602_write_data(Weight_Shiwu%10 + 0X30);
+ 137   3            LCD1602_write_word(" g");
+ 138   3      
+ 139   3            LCD1602_write_com(0x80+0x40+8);
+ 140   3            LCD1602_write_data(Weight_warn/1000 + 0X30);
+ 141   3                  LCD1602_write_data(Weight_warn%1000/100 + 0X30);
+ 142   3                  LCD1602_write_data(Weight_warn%100/10 + 0X30);
+ 143   3                  LCD1602_write_data(Weight_warn%10 + 0X30);
+ 144   3            LCD1602_write_word(" g");
+ 145   3          }
+ 146   2          
+ 147   2        }
+ 148   1      }
+ 149          
+ 150          //É¨Ãè°´¼ü
+ 151          void Scan_Key()
+ 152          {
+ 153   1        if(KEY1 == 0  && KEY2 == 1 && KEY3 ==1)
+ 154   1        {
+ 155   2          Delay_ms(5);
+ 156   2          if(KEY1 == 0  && KEY2 == 1 && KEY3 ==1)
+ 157   2          {
+ 158   3             Get_Maopi();
+ 159   3          } 
+ 160   2        }
+ 161   1      
+ 162   1        if(KEY2 == 0 && KEY1 == 1 && KEY3 ==1)
+ 163   1        {
+ 164   2          Delay_ms(20);
+ 165   2          if(KEY2 == 0 && KEY1 == 1 && KEY3 ==1)
+ 166   2          {
+ 167   3          //  while(KEY2 == 0);
+ 168   3             if(Weight_warn<=5000)   { Weight_warn+=1;}
+ 169   3              write_eeprom();       //±£´æÊý¾Ý
+ 170   3          } 
+ 171   2        }
+ 172   1      
+ 173   1        if(KEY3 == 0 && KEY2 == 1 && KEY1 ==1)
+ 174   1        {
+ 175   2          Delay_ms(20);
+ 176   2          if(KEY3 == 0 && KEY2 == 1 && KEY1 ==1)
+ 177   2          {
+ 178   3          //  while(KEY3 == 0);
+ 179   3              if(Weight_warn>=2)  Weight_warn-=1;
+C51 COMPILER V9.52.0.0   MAIN                                                              06/04/2018 10:19:03 PAGE 4   
+
+ 180   3             write_eeprom();       //±£´æÊý¾Ý
+ 181   3          } 
+ 182   2        }
+ 183   1        
+ 184   1        
+ 185   1        //=======================¶ÔÊµÎï½øÐÐÖØÁ¿Ð£Õý================================
+ 186   1        if(KEY1 == 0 && KEY2 == 0 && KEY3 ==1)
+ 187   1        {
+ 188   2          Delay_ms(25);
+ 189   2          if(KEY1 == 0 && KEY2 == 0 && KEY3 ==1)
+ 190   2          {
+ 191   3      
+ 192   3              if(GapValue<9999)  { GapValue++; }
+ 193   3               write_eeprom();       //±£´æÊý¾Ý
+ 194   3      
+ 195   3          } 
+ 196   2        }
+ 197   1      
+ 198   1        if(KEY1 == 0 && KEY2 == 1 && KEY3 ==0)
+ 199   1        {
+ 200   2          Delay_ms(25);
+ 201   2          if(KEY1 == 0 && KEY2 == 1 && KEY3 ==0)
+ 202   2          {  
+ 203   3      
+ 204   3              if(GapValue>1)  {   GapValue--; }
+ 205   3              write_eeprom();       //±£´æÊý¾Ý
+ 206   3      
+ 207   3      
+ 208   3          } 
+ 209   2        }
+ 210   1        
+ 211   1          if(Weight_Shiwu<Weight_warn)   {jiare=1; speak=1;}   //¼ÌµçÆ÷¹Ø±Õ
+ 212   1          if(Weight_Shiwu>=Weight_warn)  {jiare=0; speak=0; }  //¼ÌµçÆ÷´ò¿ª
+ 213   1      }
+ 214          
+ 215          //****************************************************
+ 216          //³ÆÖØ
+ 217          //****************************************************
+ 218          void Get_Weight()
+ 219          {
+ 220   1        Weight_Shiwu = HX711_Read();
+ 221   1        Weight_Shiwu = Weight_Shiwu - Weight_Maopi;   //»ñÈ¡¾»ÖØ
+ 222   1        if(Weight_Shiwu > 0)      
+ 223   1        { 
+ 224   2          Weight_Shiwu = (unsigned int)((float)Weight_Shiwu/GapValue);  //¼ÆËãÊµÎïµÄÊµ¼ÊÖØÁ¿
+ 225   2                                          
+ 226   2                                          
+ 227   2          if(Weight_Shiwu > 5000)   //³¬ÖØ±¨¾¯
+ 228   2          {
+ 229   3            Flag_ERROR = 1; 
+ 230   3          }
+ 231   2          else
+ 232   2          {
+ 233   3            Flag_ERROR = 0;
+ 234   3          }
+ 235   2        }
+ 236   1        else
+ 237   1        {
+ 238   2          Weight_Shiwu = 0;
+ 239   2        //  Flag_ERROR = 1;       //¸ºÖØ±¨¾¯
+ 240   2        }
+ 241   1        
+C51 COMPILER V9.52.0.0   MAIN                                                              06/04/2018 10:19:03 PAGE 5   
+
+ 242   1      }
+ 243          
+ 244          //****************************************************
+ 245          //»ñÈ¡Ã«Æ¤ÖØÁ¿
+ 246          //****************************************************
+ 247          void Get_Maopi()
+ 248          {
+ 249   1        Weight_Maopi = HX711_Read();  
+ 250   1      } 
+ 251          
+ 252          //****************************************************
+ 253          //MSÑÓÊ±º¯Êý(12M¾§ÕñÏÂ²âÊÔ)
+ 254          //****************************************************
+ 255          void Delay_ms(unsigned int n)
+ 256          {
+ 257   1        unsigned int  i,j;
+ 258   1        for(i=0;i<n;i++)
+ 259   1          for(j=0;j<123;j++);
+ 260   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1190    ----
+   CONSTANT SIZE    =     26    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     27    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

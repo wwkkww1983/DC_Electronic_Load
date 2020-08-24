@@ -1,0 +1,4 @@
+"main.obj",
+"HX711.obj" 
+TO "main" 
+RAMSIZE(256) 

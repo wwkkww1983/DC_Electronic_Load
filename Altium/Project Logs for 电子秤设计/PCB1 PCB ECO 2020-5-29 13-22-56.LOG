@@ -1,0 +1,7 @@
+Removed Pin From Net: NetName=GND Pin=P1-1
+Change Component Footprint: Designator=P1 Old Footprint=HT396K-3 New Footprint=HX2.54-3
+Added Pin To Net: NetName=GND Pin=P1-3
+Added Pin To Net: NetName=NetP1_1 Pin=P1-1
+Added Pin To Net: NetName=NetP1_1 Pin=S1-1
+Added Net: Name=NetP1_1
+Added Room: Name=Sheet1

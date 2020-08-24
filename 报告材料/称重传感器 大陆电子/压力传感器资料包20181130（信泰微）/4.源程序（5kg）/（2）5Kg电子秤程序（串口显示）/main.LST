@@ -1,0 +1,149 @@
+C51 COMPILER V9.52.0.0   MAIN                                                              05/31/2017 14:38:29 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /**********************************************************************
+   2          ----------------1.开发环境:Keil v4             ----------------
+   3          ----------------2.使用单片机型号：STC89C52RC       ----------------
+   4          
+   5          ***********************************************************************/
+   6          
+   7          #include "main.h"
+   8          #include "HX711.h"
+   9          #include "uart.h"
+  10          
+  11          unsigned long HX711_Buffer = 0;
+  12          unsigned long Weight_Maopi = 0;
+  13          long Weight_Shiwu = 0;
+  14          
+  15          unsigned char flag = 0;
+  16          bit Flag_ERROR = 0;
+  17          
+  18          //校准参数
+  19          //因为不同的传感器特性曲线不是很一致，因此，每一个传感器需要矫正这里这个参数才能使测量值很准确。
+  20          //当发现测试出来的重量偏大时，增加该数值。
+  21          //如果测试出来的重量偏小时，减小改数值。
+  22          //该值可以为小数
+  23          #define GapValue 430
+  24          
+  25          
+  26          //****************************************************
+  27          //主函数
+  28          //****************************************************
+  29          void main()
+  30          {
+  31   1          Uart_Init();
+  32   1          Send_Word("Welcome to use!\n");
+  33   1          Send_Word("Made by Beetle Electronic Technology!\n");
+  34   1        Delay_ms(3000);    //延时,等待传感器稳定
+  35   1      
+  36   1        Get_Maopi();        //称毛皮重量
+  37   1        
+  38   1        while(1)
+  39   1        {
+  40   2          EA = 0;
+  41   2          Get_Weight();     //称重
+  42   2          EA = 1;
+  43   2      
+  44   2          Scan_Key();
+  45   2      
+  46   2          //显示当前重量
+  47   2          if( Flag_ERROR == 1)
+  48   2          {
+  49   3                  Send_Word("ERROR\n");
+  50   3          }   
+  51   2          else
+  52   2          {
+  53   3                  Send_ASCII(Weight_Shiwu/1000 + 0X30);
+  54   3                  Send_ASCII(Weight_Shiwu%1000/100 + 0X30);
+  55   3                  Send_ASCII(Weight_Shiwu%100/10 + 0X30);
+C51 COMPILER V9.52.0.0   MAIN                                                              05/31/2017 14:38:29 PAGE 2   
+
+  56   3                  Send_ASCII(Weight_Shiwu%10 + 0X30);
+  57   3                  Send_Word(" g\n");
+  58   3          }
+  59   2          
+  60   2        }
+  61   1      }
+  62          
+  63          //扫描按键
+  64          void Scan_Key()
+  65          {
+  66   1        if(KEY1 == 0)
+  67   1        {
+  68   2          Delay_ms(5);
+  69   2          if(KEY1 == 0)
+  70   2          {
+  71   3            while(KEY1 == 0);
+  72   3            Get_Maopi();      //去皮
+  73   3          } 
+  74   2        }
+  75   1      }
+  76          
+  77          //****************************************************
+  78          //称重
+  79          //****************************************************
+  80          void Get_Weight()
+  81          {
+  82   1        Weight_Shiwu = HX711_Read();
+  83   1        Weight_Shiwu = Weight_Shiwu - Weight_Maopi;   //获取净重
+  84   1        if(Weight_Shiwu > 0)      
+  85   1        { 
+  86   2          Weight_Shiwu = (unsigned int)((float)Weight_Shiwu/GapValue);  //计算实物的实际重量
+  87   2                                          
+  88   2                                          
+  89   2          if(Weight_Shiwu > 5000)   //超重报警
+  90   2          {
+  91   3            Flag_ERROR = 1; 
+  92   3          }
+  93   2          else
+  94   2          {
+  95   3            Flag_ERROR = 0;
+  96   3          }
+  97   2        }
+  98   1        else
+  99   1        {
+ 100   2          Weight_Shiwu = 0;
+ 101   2          Flag_ERROR = 1;       //负重报警
+ 102   2        }
+ 103   1        
+ 104   1      }
+ 105          
+ 106          //****************************************************
+ 107          //获取毛皮重量
+ 108          //****************************************************
+ 109          void Get_Maopi()
+ 110          {
+ 111   1        Weight_Maopi = HX711_Read();  
+ 112   1      } 
+ 113          
+ 114          //****************************************************
+ 115          //MS延时函数(12M晶振下测试)
+ 116          //****************************************************
+ 117          void Delay_ms(unsigned int n)
+C51 COMPILER V9.52.0.0   MAIN                                                              05/31/2017 14:38:29 PAGE 3   
+
+ 118          {
+ 119   1        unsigned int  i,j;
+ 120   1        for(i=0;i<n;i++)
+ 121   1          for(j=0;j<123;j++);
+ 122   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    390    ----
+   CONSTANT SIZE    =     67    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,13 @@
+Change component parameters: Designator = "R9" ("R9"); Footprint = "AXIAL-0.3"; UniqueID = "\AETXTOXK" ("\AETXTOXK")
+Change component parameters (AddParameter): Name = "Published"; Value = "8-Jun-2000"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Publisher"; Value = "Altium Limited"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Revision"; Value = "July-2002: Re-released for DXP Platform."; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Value"; Value = "10k"; VariantName = "[No Variations]"
+Added Member To Class: ClassName=Sheet1 Member=Component R3 Resistor
+Added Member To Class: ClassName=Sheet1 Member=Component R6 Resistor
+Added Member To Class: ClassName=Sheet1 Member=Component R7 Resistor
+Added Member To Class: ClassName=Sheet1 Member=Component R8 Resistor
+Added Member To Class: ClassName=Sheet1 Member=Component R9 Resistor
+Added Member To Class: ClassName=Sheet1 Member=Component R10 Resistor
+Added Member To Class: ClassName=Sheet1 Member=Component U3 TL431
+Added Room: Name=Sheet1

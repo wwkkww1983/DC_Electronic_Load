@@ -1,0 +1,283 @@
+C51 COMPILER V9.00   MAIN                                                                  12/18/2015 12:34:50 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /**********************************************************************
+   2          ----------------1.开发环境:Keil v4                                         ----------------
+   3          ----------------2.使用单片机型号：STC89C52RC               ----------------
+   4          
+   5          ***********************************************************************/
+   6          #include "main.h"
+   7          #include "HX711.h"
+   8          
+   9          unsigned long HX711_Buffer = 0;
+  10          unsigned long Weight_Maopi = 0;
+  11          long Weight_Shiwu = 0;
+  12          
+  13          unsigned int Temp_Buffer = 0;
+  14          //code unsigned char table[]={ 0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90,0xff,0x00};                    //0,1,2,3,4
+             -,5,6,7,8,9,全暗，全亮                 //共阳
+  15          code unsigned char table[] = { 0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0X00,0XFF,0x6f,0x79,0x77,
+             -0x3f,0x76,0x38};                      //0,1,2,3,4,5,6,7,8,9,全暗，全亮,g,e,r,o,h,l                    //共阴
+  16          unsigned char COM1_DATA = 0,COM2_DATA = 0,COM3_DATA = 0,COM4_DATA = 0,COM5_DATA = 0,COM6_DATA = 0;
+  17          unsigned char flag = 0;
+  18          bit Flag_ERROR = 0;
+  19          
+  20          
+  21          //校准参数
+  22          //因为不同的传感器特性曲线不是很一致，因此，每一个传感器需要矫正这里这个参数才能使测量值很准确。
+  23          //当发现测试出来的重量偏大时，增加该数值。
+  24          //如果测试出来的重量偏小时，减小改数值。
+  25          //该值可以为小数
+  26          #define GapValue 430
+  27          
+  28          
+  29          //****************************************************
+  30          //主函数
+  31          //****************************************************
+  32          void main()
+  33          {
+  34   1              Init_Timer0();
+  35   1      
+  36   1              COM1_DATA =     16;                             //H
+  37   1              COM2_DATA = 13;                         //E             
+  38   1              COM3_DATA = 17;                         //L             
+  39   1              COM4_DATA = 17;                         //L             
+  40   1              COM5_DATA = 15;                         //0             
+  41   1              COM6_DATA = 10;                         //空
+  42   1                                      
+  43   1              Delay_ms(3000);          //延时,等待传感器稳定
+  44   1      
+  45   1              Get_Maopi();                            //称毛皮重量
+  46   1              
+  47   1              while(1)
+  48   1              {
+  49   2                      EA = 0;
+  50   2                      Get_Weight();                   //称重
+  51   2                      EA = 1;
+  52   2      
+  53   2                      Scan_Key();
+C51 COMPILER V9.00   MAIN                                                                  12/18/2015 12:34:50 PAGE 2   
+
+  54   2      
+  55   2                      //显示当前重量
+  56   2                      if( Flag_ERROR == 1)
+  57   2                      {
+  58   3                              COM1_DATA = 13;                 //E
+  59   3                              COM2_DATA = 14;                 //R
+  60   3                              COM3_DATA = 14;                 //R
+  61   3                              COM4_DATA = 15;                 //O
+  62   3                              COM5_DATA = 14;                 //R                             
+  63   3                              COM6_DATA = 10;                 //空    
+  64   3                      }
+  65   2                      else
+  66   2                      {
+  67   3                              COM1_DATA = Weight_Shiwu/1000;          
+  68   3                              COM2_DATA = Weight_Shiwu%1000/100;              
+  69   3                              COM3_DATA = Weight_Shiwu%100/10;                
+  70   3                              COM4_DATA = Weight_Shiwu%10;
+  71   3                              COM5_DATA = 10;                 //空                            
+  72   3                              COM6_DATA = 12;                 //g     
+  73   3                      }
+  74   2                      
+  75   2              }
+  76   1      }
+  77          
+  78          //扫描按键
+  79          void Scan_Key()
+  80          {
+  81   1              if(KEY1 == 0)
+  82   1              {
+  83   2                      Delay_ms(5);
+  84   2                      if(KEY1 == 0)
+  85   2                      {
+  86   3                              while(KEY1 == 0);
+  87   3                              Get_Maopi();                    //去皮
+  88   3                      }       
+  89   2              }
+  90   1      }
+  91          
+  92          //****************************************************
+  93          //称重
+  94          //****************************************************
+  95          void Get_Weight()
+  96          {
+  97   1              Weight_Shiwu = HX711_Read();
+  98   1              Weight_Shiwu = Weight_Shiwu - Weight_Maopi;             //获取净重
+  99   1              if(Weight_Shiwu > 0)                    
+ 100   1              {       
+ 101   2                      Weight_Shiwu = (unsigned int)((float)Weight_Shiwu/GapValue);    //计算实物的实际重量
+ 102   2                                                                                                                                                      
+ 103   2                                                                                                                                                      
+ 104   2                      if(Weight_Shiwu > 5000)         //超重报警
+ 105   2                      {
+ 106   3                              Flag_ERROR = 1; 
+ 107   3                      }
+ 108   2                      else
+ 109   2                      {
+ 110   3                              Flag_ERROR = 0;
+ 111   3                      }
+ 112   2              }
+ 113   1              else
+ 114   1              {
+ 115   2                      Weight_Shiwu = 0;
+C51 COMPILER V9.00   MAIN                                                                  12/18/2015 12:34:50 PAGE 3   
+
+ 116   2                      Flag_ERROR = 1;                         //负重报警
+ 117   2              }
+ 118   1              
+ 119   1      }
+ 120          
+ 121          //****************************************************
+ 122          //获取毛皮重量
+ 123          //****************************************************
+ 124          void Get_Maopi()
+ 125          {
+ 126   1              Weight_Maopi = HX711_Read();    
+ 127   1      } 
+ 128          
+ 129          
+ 130          //****************************************************
+ 131          //初始化定时器0
+ 132          //****************************************************
+ 133          void Init_Timer0()
+ 134          {
+ 135   1              TMOD = 0X01;                    //T0, 工作模式1
+ 136   1      
+ 137   1              TH0 = (65536 - 2000)/256;
+ 138   1              TL0 = (65536 - 2000)%256;
+ 139   1      
+ 140   1              TR0 = 1;                                //开启定时器
+ 141   1              ET0 = 1;                            //开启定时器中断
+ 142   1              EA = 1;                                 //开启总中断            
+ 143   1      }
+ 144          
+ 145          
+ 146          //中断函数
+ 147          //****************************************************
+ 148          void Timer0() interrupt 1
+ 149          {
+ 150   1              TH0 = (65536 - 2000)/256;
+ 151   1              TL0 = (65536 - 2000)%256;
+ 152   1              
+ 153   1              TF0 = 0;
+ 154   1      
+ 155   1              flag++;
+ 156   1              if(flag >= 6)
+ 157   1              {
+ 158   2                      flag = 0;
+ 159   2              }
+ 160   1      
+ 161   1      
+ 162   1              switch(flag)
+ 163   1              {
+ 164   2                      case 0:
+ 165   2                                      COM1 = 0;
+ 166   2                                      COM2 = 1;
+ 167   2                                      COM3 = 1;
+ 168   2                                      COM4 = 1;
+ 169   2                                      COM5 = 1;
+ 170   2                                      COM6 = 1;
+ 171   2      
+ 172   2      //                              if(COM1_DATA < 10)
+ 173   2      //                              {
+ 174   2      //                                      SEG_DATA = table[COM1_DATA]|0x80;               ////显示第一位值加小数点
+ 175   2      //                              }
+ 176   2      //                              else
+ 177   2      //                              {
+C51 COMPILER V9.00   MAIN                                                                  12/18/2015 12:34:50 PAGE 4   
+
+ 178   2                                              SEG_DATA = table[COM1_DATA];    
+ 179   2      //                              }
+ 180   2                                      
+ 181   2                                      break;
+ 182   2      
+ 183   2                      case 1:
+ 184   2                                      COM1 = 1;
+ 185   2                                      COM2 = 0;
+ 186   2                                      COM3 = 1;
+ 187   2                                      COM4 = 1;
+ 188   2                                      COM5 = 1;
+ 189   2                                      COM6 = 1;
+ 190   2                                      SEG_DATA = table[COM2_DATA];            //显示第二位值
+ 191   2                                      
+ 192   2                                      break;
+ 193   2      
+ 194   2                                                                
+ 195   2                      case 2:
+ 196   2                                      COM1 = 1;
+ 197   2                                      COM2 = 1;
+ 198   2                                      COM3 = 0;
+ 199   2                                      COM4 = 1;
+ 200   2                                      COM5 = 1;
+ 201   2                                      COM6 = 1;
+ 202   2                                      SEG_DATA = table[COM3_DATA];            ////显示第三位值
+ 203   2                                      
+ 204   2                                      break;
+ 205   2      
+ 206   2      
+ 207   2                      case 3:
+ 208   2                                      COM1 = 1;
+ 209   2                                      COM2 = 1;
+ 210   2                                      COM3 = 1;
+ 211   2                                      COM4 = 0;
+ 212   2                                      COM5 = 1;
+ 213   2                                      COM6 = 1;
+ 214   2                                      SEG_DATA = table[COM4_DATA];                      //显示第四位值
+ 215   2                                      break;
+ 216   2      
+ 217   2                      case 4:
+ 218   2                                      COM1 = 1;
+ 219   2                                      COM2 = 1;
+ 220   2                                      COM3 = 1;
+ 221   2                                      COM4 = 1;
+ 222   2                                      COM5 = 0;
+ 223   2                                      COM6 = 1;
+ 224   2                                      SEG_DATA = table[COM5_DATA];                      //显示第四位值
+ 225   2                                      break;
+ 226   2      
+ 227   2                      case 5:
+ 228   2                                      COM1 = 1;
+ 229   2                                      COM2 = 1;
+ 230   2                                      COM3 = 1;
+ 231   2                                      COM4 = 1;
+ 232   2                                      COM5 = 1;
+ 233   2                                      COM6 = 0;
+ 234   2                                      SEG_DATA = table[COM6_DATA];                      //显示第四位值
+ 235   2                                      break;
+ 236   2      
+ 237   2                      default : break;
+ 238   2              }
+ 239   1      
+C51 COMPILER V9.00   MAIN                                                                  12/18/2015 12:34:50 PAGE 5   
+
+ 240   1      } 
+ 241          
+ 242          //****************************************************
+ 243          //MS延时函数(12M晶振下测试)
+ 244          //****************************************************
+ 245          void Delay_ms(unsigned int n)
+ 246          {
+ 247   1              unsigned int  i,j;
+ 248   1              for(i=0;i<n;i++)
+ 249   1                      for(j=0;j<123;j++);
+ 250   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    552    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

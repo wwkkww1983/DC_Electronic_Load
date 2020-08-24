@@ -1,0 +1,13 @@
+Removed Pin From Net: NetName=GND Pin=P5-1
+Removed Pin From Net: NetName=GND Pin=P5-2
+Removed Pin From Net: NetName=U2 Pin=P6-1
+Removed Pin From Net: NetName=U2 Pin=P6-2
+Change Component Footprint: Designator=P3 Old Footprint=HDR-1x2 New Footprint=HDR1X2
+Change Component Footprint: Designator=P4 Old Footprint=HDR-1x2 New Footprint=HDR1X2
+Change Component Footprint: Designator=P5 Old Footprint=HDR-1x2 New Footprint=HDR1X2
+Change Component Footprint: Designator=P6 Old Footprint=HDR-1x2 New Footprint=HDR1X2
+Added Pin To Net: NetName=U2 Pin=P5-1
+Added Pin To Net: NetName=U2 Pin=P5-2
+Added Pin To Net: NetName=GND Pin=P6-1
+Added Pin To Net: NetName=GND Pin=P6-2
+Added Room: Name=Sheet1

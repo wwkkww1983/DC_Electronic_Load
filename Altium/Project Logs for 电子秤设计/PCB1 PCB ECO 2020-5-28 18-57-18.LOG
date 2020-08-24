@@ -1,0 +1,34 @@
+Removed Pin From Net: NetName=NetPp2_1 Pin=U3-1
+Removed Pin From Net: NetName=NetR8_1 Pin=U3-2
+Removed Pin From Net: NetName=NetR9_2 Pin=U3-3
+Removed Pin From Net: NetName=-VCC Pin=U3-4
+Removed Pin From Net: NetName=GND Pin=U3-5
+Removed Pin From Net: NetName=NetP2_1 Pin=U3-6
+Removed Pin From Net: NetName=VCC Pin=U3-7
+Removed Pin From Net: NetName=NetPp2_2 Pin=U3-8
+Added Component: Designator=U1(N-8)
+Add component (AddParameter): Name = "ComponentLink1Description"; Value = "Manufacturer Link"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "http://www.analog.com/en/prod/0%2C2877%2CAD620%2C00.html"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "http://www.analog.com/UploadedFiles/Data_Sheets/897653854AD620_g.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "DatasheetVersion"; Value = "REV.D 1998"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LatestRevisionDate"; Value = "04-Mar-2005"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LatestRevisionNote"; Value = "Stylized 3D Model Added."; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageDescription"; Value = "DIP; 8 Leads; Row Spacing 7.62 mm; Pitch 2.54 mm"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageReference"; Value = "N-8"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageVersion"; Value = "revA"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "8-Jun-2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Limited"; VariantName = "[No Variations]"
+Added Component: Designator=U3(BCY-W3/E4)
+Added Pin To Net: NetName=NetPp2_1 Pin=U1-1
+Added Pin To Net: NetName=NetR8_1 Pin=U1-2
+Added Pin To Net: NetName=NetR9_2 Pin=U1-3
+Added Pin To Net: NetName=-VCC Pin=U1-4
+Added Pin To Net: NetName=GND Pin=U1-5
+Added Pin To Net: NetName=NetP2_1 Pin=U1-6
+Added Pin To Net: NetName=VCC Pin=U1-7
+Added Pin To Net: NetName=NetPp2_2 Pin=U1-8
+Added Pin To Net: NetName=NetR6_1 Pin=U3-1
+Added Pin To Net: NetName=GND Pin=U3-2
+Added Pin To Net: NetName=NetR6_1 Pin=U3-3
+Added Member To Class: ClassName=Sheet1 Member=Component U1 AD620AN
